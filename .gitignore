@@ -1,0 +1,8 @@
+.idea/*
+logs/*
+games/*
+__pycache__/*
+*.db
+*.ini
+src/__pycache__/
+Pipfile.lock
