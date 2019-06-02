@@ -1,0 +1,1 @@
+A standardized logging handler for my reddit bots that supports logging to discord webhooks.
