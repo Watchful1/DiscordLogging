@@ -64,10 +64,13 @@ def init_logging(
 	return log
 
 
-def get_logger():
+def get_logger(init=False):
 	global _logger
 	if _logger is None:
-		raise ValueError("Logger not initialized")
+		if init:
+			return init_logging()
+		else:
+			raise ValueError("Logger not initialized")
 
 	return logging.getLogger(_logger)
 
