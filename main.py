@@ -1,26 +1,26 @@
-from discord_logging import discord_logging
+import discord_logging
+import requests
+from datetime import datetime
+import time
+
 
 log = discord_logging.init_logging(debug=True)
 
-log.debug("debug")
-log.info("info")
-log.warning("warning")
-log.error("error")
-log.critical("critical")
+discord_logging.init_discord_logging("Watchful1BotTest", 1)
 
-discord_logging.init_discord_logging("Watchful1BotTest")
-
-log.debug("debug2")
-log.info("info2")
-log.warning("warning2")
-log.error("error2")
-log.critical("critical2")
-
-log.info("info3")
-log.info("info4")
-log.info("info5")
-log.info("info6")
-log.info("info7")
-log.info("info8")
-log.info("info9")
-log.info("info10")
+log.info("Test1")
+log.info("Test2")
+log.info("Test3")
+log.info("Test4")
+time.sleep(2)
+log.info("Test5")
+log.info("Test6")
+log.info("Test7")
+log.info("Test8")
+log.info("Test9")
+log.info("Test10")
+time.sleep(2)
+log.info("Test11")
+log.info("Test12")
+log.info("Test13")
+discord_logging.flush_discord()
