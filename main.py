@@ -1,12 +1,12 @@
 import discord_logging
-import requests
-from datetime import datetime
+import logging.handlers
 import time
 
 
 log = discord_logging.init_logging(debug=True)
 
-discord_logging.init_discord_logging("Watchful1BotTest", 1)
+discord_logging.init_discord_logging("Watchful1BotTest", logging.INFO, 1)
+discord_logging.init_discord_logging("global", logging.WARNING, 1)
 
 log.info("Test1")
 log.info("Test2")

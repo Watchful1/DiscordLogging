@@ -28,52 +28,55 @@ class WebhookHandler(logging.Handler):
 		self.sleep = False
 
 	def emit(self, record):
-		now = datetime.utcnow().replace(microsecond=0)
-		if record is None:
-			message = None
-		else:
-			message = self.format(record)
+		try:
+			now = datetime.utcnow().replace(microsecond=0)
+			if record is None:
+				message = None
+			else:
+				message = self.format(record)
 
-		if self.sleep:
-			if self.remaining <= 0:
-				time.sleep(max(1, (self.reset - now).seconds))
-				now = datetime.utcnow().replace(microsecond=0)
-			self.count_sent = 0
+			if self.sleep:
+				if self.remaining <= 0:
+					time.sleep(max(1, (self.reset - now).seconds))
+					now = datetime.utcnow().replace(microsecond=0)
+				self.count_sent = 0
 
-		if self.reset is not None and self.reset < now:
-			remaining = 5
+			if self.reset is not None and self.reset < now:
+				remaining = 5
 
-		if self.last_sent is not None and self.last_sent < now:
-			self.count_sent = 0
+			if self.last_sent is not None and self.last_sent < now:
+				self.count_sent = 0
 
-		if self.remaining > 0 and self.count_sent < self.count_per_second:
-			if len(self.queue):
+			if self.remaining > 0 and self.count_sent < self.count_per_second:
+				if len(self.queue):
+					if message is not None:
+						self.queue.append(message)
+					message = '\n'.join(self.queue)
+					self.queue = []
+
+				if message is None or message == "":
+					return True
+
+				data = {"content": message}
+				if self.username is not None:
+					data['username'] = self.username
+				result = requests.post(self.webhook, data=data)
+
+				self.remaining = int(result.headers['X-RateLimit-Remaining'])
+				self.reset = datetime.utcfromtimestamp(int(result.headers['X-RateLimit-Reset']))
+				self.last_sent = now
+				self.count_sent += 1
+
+				if not result.ok:
+					self.queue.append(message)
+					return False
+			else:
 				if message is not None:
 					self.queue.append(message)
-				message = '\n'.join(self.queue)
-				self.queue = []
-
-			if message is None or message == "":
-				return True
-
-			data = {"content": message}
-			if self.username is not None:
-				data['username'] = self.username
-			result = requests.post(self.webhook, data=data)
-
-			self.remaining = int(result.headers['X-RateLimit-Remaining'])
-			self.reset = datetime.utcfromtimestamp(int(result.headers['X-RateLimit-Reset']))
-			self.last_sent = now
-			self.count_sent += 1
-
-			if not result.ok:
-				self.queue.append(message)
 				return False
-		else:
-			if message is not None:
-				self.queue.append(message)
+			return True
+		except Exception:
 			return False
-		return True
 
 
 def init_logging(
@@ -156,7 +159,7 @@ def get_config_var(config, section, variable):
 	return config[section][variable]
 
 
-def init_discord_logging(section_name, count_per_second=10):
+def init_discord_logging(section_name, log_level, count_per_second=1):
 	global discord_handlers
 	config = get_config()
 	log = get_logger()
@@ -166,15 +169,8 @@ def init_discord_logging(section_name, count_per_second=10):
 	discord_logging_handler = WebhookHandler(logging_webhook, section_name, count_per_second)
 	discord_handlers.append(discord_logging_handler)
 	discord_logging_handler.setFormatter(formatter)
-	discord_logging_handler.setLevel(logging.INFO)
+	discord_logging_handler.setLevel(log_level)
 	log.addHandler(discord_logging_handler)
-
-	global_webhook = get_config_var(config, "global", "global_webhook")
-	discord_global_handler = WebhookHandler(global_webhook, section_name, count_per_second)
-	discord_handlers.append(discord_global_handler)
-	discord_global_handler.setFormatter(formatter)
-	discord_global_handler.setLevel(logging.WARNING)
-	log.addHandler(discord_global_handler)
 
 
 def flush_discord():
