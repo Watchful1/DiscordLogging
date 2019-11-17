@@ -42,7 +42,7 @@ class WebhookHandler(logging.Handler):
 				self.count_sent = 0
 
 			if self.reset is not None and self.reset < now:
-				remaining = 5
+				self.remaining = 5
 
 			if self.last_sent is not None and self.last_sent < now:
 				self.count_sent = 0
@@ -62,8 +62,10 @@ class WebhookHandler(logging.Handler):
 					data['username'] = self.username
 				result = requests.post(self.webhook, data=data)
 
-				self.remaining = int(result.headers['X-RateLimit-Remaining'])
-				self.reset = datetime.utcfromtimestamp(int(result.headers['X-RateLimit-Reset']))
+				if 'X-RateLimit-Remaining' in result.headers:
+					self.remaining = int(result.headers['X-RateLimit-Remaining'])
+				if 'X-RateLimit-Reset' in result.headers:
+					self.reset = datetime.utcfromtimestamp(int(result.headers['X-RateLimit-Reset']))
 				self.last_sent = now
 				self.count_sent += 1
 
