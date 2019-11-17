@@ -57,7 +57,7 @@ class WebhookHandler(logging.Handler):
 				if message is None or message == "":
 					return True
 
-				data = {"content": message}
+				data = {"content": message[:2000]}
 				if self.username is not None:
 					data['username'] = self.username
 				result = requests.post(self.webhook, data=data)
