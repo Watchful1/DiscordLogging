@@ -88,7 +88,8 @@ def init_logging(
 		filename="bot.log",
 		logger="bot",
 		backup_count=5,
-		max_size=1024*1024*16
+		max_size=1024*1024*16,
+		format_string='%(asctime)s - %(levelname)s: %(message)s'
 ):
 	global _logger
 	_logger = logger
@@ -104,7 +105,7 @@ def init_logging(
 
 	log = logging.getLogger(logger)
 	log.setLevel(level)
-	log_formatter = UTCFormatter('%(asctime)s - %(levelname)s: %(message)s')
+	log_formatter = UTCFormatter(format_string)
 
 	log_stderr_handler = logging.StreamHandler()
 	log_stderr_handler.setFormatter(log_formatter)
