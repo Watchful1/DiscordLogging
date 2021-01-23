@@ -91,6 +91,18 @@ def init_logging(
 		max_size=1024*1024*16,
 		format_string='%(asctime)s - %(levelname)s: %(message)s'
 ):
+	"""Initialize and return a python logger. Creates a stream handler that outputs to stdout and a rotating file handler
+
+	:param debug: Flag to set the log level to debug. Overriden by level argument if passed
+	:param level: The log level to set the logger to. Defaults to INFO if not passed
+	:param folder: The folder name to write log files to
+	:param filename: The file name to use for the log files
+	:param logger: The logger name. Only relevant to make sure it doesn't conflict with another existing logger
+	:param backup_count: The number of rotated log files to keep
+	:param max_size: The max size, in bytes, that log files can get to before being rotated. Defaults to 16 megabytes
+	:param format_string: The format string for log messages
+	:return: The logger object
+	"""
 	global _logger
 	_logger = logger
 
@@ -122,6 +134,11 @@ def init_logging(
 
 
 def get_logger(init=False):
+	"""Gets and returns the global log object.
+
+	:param init: If the logger is not initialized, initialize it with default values
+	:return: The logger object
+	"""
 	global _logger
 	if _logger is None:
 		if init:
@@ -133,10 +150,18 @@ def get_logger(init=False):
 
 
 def set_level(level):
+	"""Shortcut to set the default loggers log level.
+
+	:param level: The log level to set to
+	"""
 	get_logger().setLevel(level)
 
 
 def get_config():
+	"""Finds and loads a praw.ini file. Copied from PRAW's source code
+
+	:return: The loaded config file
+	"""
 	config = configparser.ConfigParser()
 	if 'APPDATA' in os.environ:  # Windows
 		os_config_path = os.environ['APPDATA']
@@ -153,6 +178,13 @@ def get_config():
 
 
 def get_config_var(config, section, variable):
+	"""Takes a config object and pulls out the passed in section and variable
+
+	:param config: A configparser object
+	:param section: The section in the config to look under
+	:param variable: The variable name to find
+	:return: The config value found
+	"""
 	if section not in config:
 		raise ValueError(f"Section {section} not in config")
 
@@ -162,13 +194,23 @@ def get_config_var(config, section, variable):
 	return config[section][variable]
 
 
-def init_discord_logging(section_name, log_level, count_per_second=1):
+def init_discord_logging(section_name, log_level, count_per_second=1, logging_webhook=None):
+	"""Initializes output of log messages to a discord webhook.
+
+	By default, this pulls the webhook url from a praw.ini file, but that can be overridden.
+
+	:param section_name: The praw.ini config section name to pull the webhook from. Also sets the name the webhook uses
+	:param log_level: The log level to start sending messages to discord at
+	:param count_per_second: Webhooks are rate limited, this sets the maximum number of messages to send per second. Default 1
+	:param logging_webhook: The webhook to emit to. If left as None, pulls from the praw.ini file instead
+	"""
 	global discord_handlers
 	config = get_config()
 	log = get_logger()
 	formatter = logging.Formatter("%(levelname)s: %(message)s")
 
-	logging_webhook = get_config_var(config, section_name, "logging_webhook")
+	if logging_webhook is None:
+		logging_webhook = get_config_var(config, section_name, "logging_webhook")
 	discord_logging_handler = WebhookHandler(logging_webhook, section_name, count_per_second)
 	discord_handlers.append(discord_logging_handler)
 	discord_logging_handler.setFormatter(formatter)
@@ -177,6 +219,8 @@ def init_discord_logging(section_name, log_level, count_per_second=1):
 
 
 def flush_discord():
+	"""Since discord webhooks are rate limited, the logger caches messages if they are sent in quick succession.
+	This method flushes out the cache, waiting as long as necessary to finish sending the messages."""
 	global discord_handlers
 	for handler in discord_handlers:
 		handler.sleep = True
