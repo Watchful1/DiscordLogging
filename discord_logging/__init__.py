@@ -112,9 +112,6 @@ def init_logging(
 		else:
 			level = logging.INFO
 
-	if not os.path.exists(folder):
-		os.makedirs(folder)
-
 	log = logging.getLogger(logger)
 	log.setLevel(level)
 	log_formatter = UTCFormatter(format_string)
@@ -123,12 +120,15 @@ def init_logging(
 	log_stderr_handler.setFormatter(log_formatter)
 	log.addHandler(log_stderr_handler)
 
-	log_file_handler = logging.handlers.RotatingFileHandler(
-		os.path.join(folder, filename),
-		maxBytes=max_size,
-		backupCount=backup_count)
-	log_file_handler.setFormatter(log_formatter)
-	log.addHandler(log_file_handler)
+	if folder is not None:
+		if not os.path.exists(folder):
+			os.makedirs(folder)
+		log_file_handler = logging.handlers.RotatingFileHandler(
+			os.path.join(folder, filename),
+			maxBytes=max_size,
+			backupCount=backup_count)
+		log_file_handler.setFormatter(log_formatter)
+		log.addHandler(log_file_handler)
 
 	return log
 
