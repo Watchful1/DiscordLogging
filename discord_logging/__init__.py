@@ -58,7 +58,7 @@ class WebhookHandler(logging.Handler):
 				if message is None or message == "":
 					return True
 
-				replaced_message = re.sub(r"([ur]/[\w-]+)", r"[\1](<https://www.reddit.com/\1>)", message)
+				replaced_message = re.sub(r"([ur]/[\w-]+)([^\w/])", r"[\1](<https://www.reddit.com/\1>)\2", message)
 
 				data = {"content": replaced_message[:2000]}
 				if self.username is not None:
