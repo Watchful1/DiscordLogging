@@ -92,7 +92,8 @@ def init_logging(
 		logger="bot",
 		backup_count=5,
 		max_size=1024*1024*16,
-		format_string='%(asctime)s - %(levelname)s: %(message)s'
+		format_string='%(asctime)s - %(levelname)s: %(message)s',
+		add_trace=False
 ):
 	"""Initialize and return a python logger. Creates a stream handler that outputs to stdout and a rotating file handler
 
@@ -104,6 +105,7 @@ def init_logging(
 	:param backup_count: The number of rotated log files to keep
 	:param max_size: The max size, in bytes, that log files can get to before being rotated. Defaults to 16 megabytes
 	:param format_string: The format string for log messages
+	:param add_trace: Add a trace log level
 	:return: The logger object
 	"""
 	global _logger
@@ -116,6 +118,21 @@ def init_logging(
 			level = logging.INFO
 
 	log = logging.getLogger(logger)
+
+	if add_trace:
+		trace_level = logging.DEBUG - 5
+		def logForLevel(self, message, *args, **kwargs):
+			if self.isEnabledFor(trace_level):
+				self._log(trace_level, message, args, **kwargs)
+
+		def logToRoot(message, *args, **kwargs):
+			logging.log(trace_level, message, *args, **kwargs)
+
+		logging.addLevelName(trace_level, "TRACE")
+		setattr(logging, "TRACE", trace_level)
+		setattr(logging.getLoggerClass(), "trace", logForLevel)
+		setattr(logging, "trace", logToRoot)
+
 	log.setLevel(level)
 	log_formatter = UTCFormatter(format_string)
 
