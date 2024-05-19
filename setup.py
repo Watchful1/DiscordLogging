@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="discord-logging",
+    name="discord_logging",
     version="1.3.0",
     author="Watchful One",
     author_email="watchful@watchful.gr",
