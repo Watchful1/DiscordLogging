@@ -21,7 +21,7 @@ discord_logging.flush_discord()
 I use pipenv for my bots, DiscordLogging can be installed with this command
 
 ```
-pipenv install -e git+https://github.com/Watchful1/DiscordLogging.git#egg=discord-logging
+pipenv install -e git+https://github.com/Watchful1/DiscordLogging.git#egg=discord_logging
 ```
 
 If you use regular pip, it can be installed with

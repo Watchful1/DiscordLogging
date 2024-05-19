@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="discord_logging",
-    version="1.3.0",
+    version="1.3.1",
     author="Watchful One",
     author_email="watchful@watchful.gr",
     description="A logging package",
